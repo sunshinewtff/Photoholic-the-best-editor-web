@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Photo Editor</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    canvas {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+    }
+    input[type="range"] {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Photo Editor</h1>
+  <input type="file" accept="image/*" id="upload"><br><br>
+
+  <label>Brightness: <input type="range" id="brightness" min="0" max="200" value="100"></label><br>
+  <label>Contrast: <input type="range" id="contrast" min="0" max="200" value="100"></label><br>
+  <label>Grayscale: <input type="range" id="grayscale" min="0" max="100" value="0"></label><br><br>
+
+  <canvas id="canvas"></canvas><br><br>
+  <button onclick="downloadImage()">Download</button>
+
+  <script>
+    const upload = document.getElementById('upload');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let img = new Image();
+
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        img.onload = function() {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          drawImage();
+        }
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function drawImage() {
+      ctx.filter = getFilters();
+      ctx.drawImage(img, 0, 0);
+    }
+
+    function getFilters() {
+      const brightness = document.getElementById('brightness').value;
+      const contrast = document.getElementById('contrast').value;
+      const grayscale = document.getElementById('grayscale').value;
+      return `brightness(${brightness}%) contrast(${contrast}%) grayscale(${grayscale}%)`;
+    }
+
+    ['brightness', 'contrast', 'grayscale'].forEach(id => {
+      document.getElementById(id).addEventListener('input', drawImage);
+    });
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'edited-photo.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+  </script>
+</body>
+</html>
